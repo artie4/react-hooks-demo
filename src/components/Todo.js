@@ -3,9 +3,9 @@ import axios from 'axios';
 
 const todo = props => {
 
-    // const [todoName, setTodoName] = useState('');
-    // const [todoList, setTodoList] = useState([]);
-    const [todoState, setTodoState] = useState({userInput: '', todoList: []});
+    const [todoName, setTodoName] = useState('');
+    const [todoList, setTodoList] = useState([]);
+    // const [todoState, setTodoState] = useState({userInput: '', todoList: []});
 
     useEffect(() => {
         axios
@@ -16,33 +16,40 @@ const todo = props => {
                 const todos = [];
                 for (const key in todoData) {
                     // if (todoData.hasOwnProperty(key)) {
-                        todos.push({id: key, name: todoData[key].name})
+                    todos.push({id: key, name: todoData[key].name})
                     // }
                 }
-                setTodoState({...todoState, todoList: todos});
+                setTodoList(todos);
             });
+        return () => { console.log('Clean up') };
     }, []);
 
-    const inputChangeHandler = event => {
-        setTodoState({
-            ...todoState,
-            userInput: event.target.value,
+    const mouseMoveHandler = event => {
+        console.log(event.clientX, event.clientY)
+    };
 
-        });
+    useEffect(() => {
+        document.addEventListener('mousemove', mouseMoveHandler);
+        return () => {
+            document.removeEventListener('mousemove', mouseMoveHandler);
+        }
+    }, [todoName]);
+
+    const inputChangeHandler = event => {
+        setTodoName(event.target.value)
     };
 
     const todoAddHandler = () => {
-        axios.post('https://hooks-test-724af.firebaseio.com/todos.json', {name: todoState.userInput})
+        axios.post('https://hooks-test-724af.firebaseio.com/todos.json', {name: todoName})
             .then(res => {
                 console.log(res);
             })
             .catch(err => {
                 console.log(err);
             });
-        setTodoState({
-            userInput: "",
-            todoList: todoState.todoList.concat(todoState.userInput)
-        });
+        setTodoList(
+            todoList.concat(todoName)
+        );
     };
 
     return <React.Fragment>
@@ -50,11 +57,11 @@ const todo = props => {
             type={"text"}
             placeholder={"Todo"}
             onChange={inputChangeHandler}
-            value={todoState.userInput}
+            value={todoName}
         />
         <button type={"button"} onClick={todoAddHandler}>Add</button>
         <ul>
-            {todoState.todoList.map(todo => <li key={todo + Math.random() * 10}>{todo}</li>)}
+            {todoList.map(todo => <li key={todo + Math.random() * 10}>{todo.name}</li>)}
         </ul>
     </React.Fragment>
 };
